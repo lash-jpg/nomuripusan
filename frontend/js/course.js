@@ -177,16 +177,6 @@
     spotList.forEach(s => bounds.extend(new kakao.maps.LatLng(s.lat, s.lng)));
     map.setBounds(bounds, 60);
 
-    // 타일 로드 실패(도메인 등록 안 됨 등) 대비 폴백
-    let _tilesLoaded = false;
-    kakao.maps.event.addListener(map, 'tilesloaded', function () { _tilesLoaded = true; });
-    setTimeout(function () {
-      if (!_tilesLoaded) {
-        console.warn('Course map: Kakao 타일 로드 실패 — SVG mock 으로 폴백');
-        renderMockMap(spotList, container);
-      }
-    }, 2500);
-
     return map;
   }
 

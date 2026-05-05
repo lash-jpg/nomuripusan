@@ -77,6 +77,14 @@ class FrontendBugFixTests(unittest.TestCase):
         self.assertIn("await waitForKakaoKey()", COURSE_JS,
                       "B-005: waitForKakaoKey 호출 누락")
 
+    # B-006: 정상 렌더된 카카오맵을 타일 이벤트 오탐으로 덮어쓰지 않음
+    def test_b006_no_tile_event_based_mock_fallback(self):
+        """카카오 타일 이벤트 감시 실패만으로 mock 지도로 전환하지 않아야 한다."""
+        self.assertNotIn("tilesloaded", COURSE_JS,
+                         "B-006: tilesloaded 이벤트 기반 mock 폴백은 정상 지도를 오탐으로 덮어쓸 수 있음")
+        self.assertNotIn("Course map: Kakao 타일 로드 실패", COURSE_JS,
+                         "B-006: 타일 로드 타임아웃 기반 mock 폴백 로그가 남아 있음")
+
     # B-010: searchPlacesFallback 함수 정의 + try-catch 보호
     def test_b010_searchplacesfallback_defined_and_safe(self):
         """searchPlacesFallback이 정의되어 있어야 하며 호출부에 try-catch가 있어야 한다."""

@@ -114,7 +114,7 @@ class InteractionLogRequest(BaseModel):
     session_id: str = Field(..., min_length=1, max_length=128)
     log_id: Optional[str] = None
     event_type: str = Field(..., min_length=1, max_length=64)
-    event_data: dict[str, Any] = Field(default_factory=dict)
+    event_data: dict[str, Any] = Field(default_factory=dict, max_length=20)  # 키 20개 이하
 
 
 class InteractionLogResponse(BaseModel):

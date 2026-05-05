@@ -121,11 +121,17 @@ async def security_headers_middleware(request: Request, call_next):
 # ── Rate Limiting (경량 미들웨어) ──────────────────────────────────
 # 경로별 제한: (최대 요청 수, 윈도우 초)
 _RATE_LIMITS: dict[str, tuple[int, int]] = {
-    "/api/recommend": (10, 60),   # IP당 분당 10회
-    "/api/share": (20, 60),       # IP당 분당 20회 (POST만)
+    "/api/recommend": (10, 60),      # IP당 분당 10회
+    "/api/share": (20, 60),          # IP당 분당 20회
     "/api/log/recommend": (30, 60),  # IP당 분당 30회
-    "/api/log/survey": (10, 60),     # IP당 분당 10회 (같은 세션이 여러번 제출 방지)
+    "/api/log/survey": (10, 60),     # IP당 분당 10회
 }
+# GET 엔드포인트별 분당 제한 (동적 경로는 prefix 매칭)
+_RATE_LIMITS_GET_PREFIXES: list[tuple[str, int, int]] = [
+    ("/api/share/", 60, 60),    # 공유 링크 조회: 분당 60회
+    ("/api/courses/", 60, 60),  # 코스 상세 조회: 분당 60회
+    ("/api/reports/", 30, 60),  # 신고 목록 조회: 분당 30회
+]
 _rate_buckets: dict[str, list[float]] = defaultdict(list)
 # 주기적 전체 청소용 카운터 (빈 bucket이 무제한으로 쌓이는 것 방지)
 _rate_gc_counter = 0
@@ -150,8 +156,17 @@ def _gc_rate_buckets(now: float) -> None:
 async def rate_limit_middleware(request: Request, call_next):
     global _rate_gc_counter
     path = request.url.path
-    limit_config = _RATE_LIMITS.get(path)
-    if limit_config and request.method == "POST":
+
+    # POST 엔드포인트 정확 매칭
+    limit_config = _RATE_LIMITS.get(path) if request.method == "POST" else None
+    # GET 엔드포인트 prefix 매칭 (동적 경로 대응)
+    if limit_config is None and request.method == "GET":
+        for prefix, max_req, win in _RATE_LIMITS_GET_PREFIXES:
+            if path.startswith(prefix):
+                limit_config = (max_req, win)
+                break
+
+    if limit_config:
         max_requests, window_sec = limit_config
         # X-Forwarded-For 헤더로 실제 클라이언트 IP 추출 (CDN/프록시 환경 대응)
         forwarded = request.headers.get("X-Forwarded-For")

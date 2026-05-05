@@ -114,6 +114,7 @@ class CourseStore:
 
     def cleanup_expired(self) -> int:
         """만료된 코스 레코드 삭제. 반환: 삭제 건수."""
+        expired_ids: list[str] = []
         try:
             conn = self._conn()
             try:

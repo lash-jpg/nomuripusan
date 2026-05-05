@@ -127,6 +127,8 @@ async def create_share(req: ShareRequest):
 
 @router.get("/api/share/{token}")
 async def get_share(token: str):
+    if not token or len(token) > 32 or not token.isalnum():
+        raise HTTPException(status_code=400, detail="유효하지 않은 공유 토큰입니다.")
     conn = _get_conn()
     try:
         row = conn.execute(

@@ -2,7 +2,6 @@
  * 무리없이 부산 — 코스 상세 + 지도 렌더링.
  */
 (async function () {
-  // runtime-config.js가 synchronous 로 로드되므로 별도의 키 대기 로직은 불필요하다.
   const urlId = new URLSearchParams(location.search).get('id');
   let course = AppState.selected_course;
 
@@ -35,10 +34,32 @@
   // ── 공유 모듈 키 보장 ─────────────────────────────
   let kakaoLoader = null;
 
+  function waitForKakaoKey(timeoutMs = 1500) {
+    if (Object.prototype.hasOwnProperty.call(window, 'KAKAO_MAP_KEY')) {
+      return Promise.resolve(window.KAKAO_MAP_KEY || null);
+    }
+    return new Promise(resolve => {
+      const started = Date.now();
+      const poll = () => {
+        if (Object.prototype.hasOwnProperty.call(window, 'KAKAO_MAP_KEY')) {
+          resolve(window.KAKAO_MAP_KEY || null);
+          return;
+        }
+        if (Date.now() - started >= timeoutMs) {
+          resolve(null);
+          return;
+        }
+        setTimeout(poll, 30);
+      };
+      poll();
+    });
+  }
+
   // ── 1. Kakao SDK 로딩 (버그 수정: 이미 로드된 스크립트 처리) ──────
   function loadKakaoSdk() {
     if (window.kakao && window.kakao.maps) return Promise.resolve(window.kakao);
     if (kakaoLoader) return kakaoLoader;
+    if (!window.KAKAO_MAP_KEY) return Promise.reject(new Error('KAKAO_MAP_KEY missing'));
 
     kakaoLoader = new Promise((resolve, reject) => {
       // B-001: 실패 시 kakaoLoader를 null로 리셋하여 재시도 가능하게
@@ -229,7 +250,7 @@
       </div>
       ${course.ai_description ? `
       <div class="course-ai-block" style="margin:12px 0 0">
-        <span class="course-ai-label">✦ AI 추천 이유</span>
+        <span class="course-ai-label">✦ 추천 이유</span>
         <p class="course-ai-desc">${escapeHtml(course.ai_description)}</p>
         ${course.ai_highlights?.length ? `<div class="course-ai-chips">${course.ai_highlights.map(h=>`<span class="ai-chip">${escapeHtml(h)}</span>`).join('')}</div>` : ''}
         ${course.ai_tip ? `<div class="course-ai-tip">💡 ${escapeHtml(course.ai_tip)}</div>` : ''}
@@ -359,6 +380,7 @@
 
   async function initMaps(spotList) {
     if (!spotList || !spotList.length) return;
+    await waitForKakaoKey();
     // 유효 좌표만 필터링 (장소 추가 후 좌표 누락 방지)
     const valid = spotList.filter(function (s) {
       return typeof s.lat === 'number' && typeof s.lng === 'number' && !isNaN(s.lat) && !isNaN(s.lng);
@@ -438,6 +460,8 @@
     const resultsEl = document.getElementById('placeSearchResults');
     if (!resultsEl) return;
     resultsEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-400)">검색 중…</div>';
+
+    await waitForKakaoKey();
 
     // KAKAO_MAP_KEY가 없거나 SDK 로드가 실패하는 경우, 즉시 백엔드 fallback으로 전환한다.
     // SDK 로드 자체를 기다리다 지연되는 경우도 있어 선제적으로 처리한다.

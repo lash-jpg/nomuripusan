@@ -364,11 +364,16 @@ def recommend_courses(
         start_offset = (day - 1) * 2 if len(pool) < reuse_threshold else 0
         ordered_pool = day_pool[start_offset:] + day_pool[:start_offset]
 
+        # 단일 권역 필터 시(혹은 풀 전체가 동일 권역)에는 권역 다양성 제약을 완화한다.
+        pool_areas = {s["area"] for s in day_pool}
+        multi_area_pool = len(pool_areas) > 1
+
         for start in ordered_pool:
             if alt_idx >= NUM_ALTERNATIVES:
                 break
             # 다른 코스와 다른 시작 권역 선호 (앞 2개는 강제, 나머지는 허용)
-            if start["area"] in used_start_areas and alt_idx < 2:
+            # 단일 권역 풀에서는 이 제약이 대안 코스 생성을 막으므로 완화한다.
+            if multi_area_pool and start["area"] in used_start_areas and alt_idx < 2:
                 continue
 
             course = _build_day_course(start, day_pool, weights, mobility_types, day, days, alt_idx, is_rainy, dist_matrix)

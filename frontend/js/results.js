@@ -632,7 +632,7 @@ loadWeather();
         </div>
         ${course.ai_description ? `
         <div class="course-ai-block">
-          <span class="course-ai-label">✦ AI 추천 이유</span>
+          <span class="course-ai-label">✦ 추천 이유</span>
           <p class="course-ai-desc">${escapeHtml(course.ai_description)}</p>
           ${course.ai_highlights?.length ? `<div class="course-ai-chips">${course.ai_highlights.map(h=>`<span class="ai-chip">${escapeHtml(h)}</span>`).join('')}</div>` : ''}
           ${course.ai_tip ? `<div class="course-ai-tip">💡 ${escapeHtml(course.ai_tip)}</div>` : ''}
@@ -657,7 +657,7 @@ loadWeather();
           ).join('')}
         </div>
         <div class="course-card-footer">
-          <span class="source">${course.ai_description ? 'AI + 공공데이터 기반 추천' : '공공데이터 기반 추천'}</span>
+          <span class="source">${course.ai_description ? '공공데이터 기반 추천 이유' : '공공데이터 기반 추천'}</span>
           <span class="arrow" aria-hidden="true">→</span>
         </div>`;
 

@@ -1,4 +1,8 @@
-"""Gemini 2.5 Flash Lite — AI 코스 설명 + 스팟별 가이드. Supabase 캐시(파일 캐시 fallback)."""
+"""경로별 추천 이유 보강.
+
+저장된 경로 이유 DB를 우선 사용하고, 미등록 경로만 Gemini로 생성한다.
+Gemini 키/쿼터가 없으면 추천 이유 없이 원본 코스를 그대로 반환한다.
+"""
 from __future__ import annotations
 
 import asyncio
@@ -10,13 +14,17 @@ import logging
 import time
 from pathlib import Path
 
+from backend.services.reason_store import reason_store
+
 logger = logging.getLogger(__name__)
 _CACHE_DIR = Path(__file__).resolve().parent.parent / "data" / "ai_cache"
 
 # 우선순위 순으로 시도할 모델 목록 (최신 → 안정)
+# 2.0 시리즈와 1.5 시리즈는 무료 쿼터가 독립적이므로 fallback 효과가 있다.
 _MODEL_CANDIDATES = [
     "gemini-2.0-flash-lite",
     "gemini-2.0-flash",
+    "gemini-1.5-flash",
 ]
 _MODEL_NAME = _MODEL_CANDIDATES[0]
 _client = None
@@ -148,7 +156,12 @@ def _save_cache_file(key: str, data: dict) -> None:
 
 
 def _load_cache(key: str) -> dict | None:
-    """Supabase 우선, 실패 시 파일 캐시 fallback."""
+    """경로 이유 DB 우선, Supabase/파일 캐시 fallback."""
+    stored = reason_store.get(key)
+    if stored:
+        logger.info("추천 이유 DB 히트: %s", key)
+        return stored
+
     sb = _get_supabase()
     if sb is not None:
         try:
@@ -163,7 +176,9 @@ def _load_cache(key: str) -> dict | None:
 
 
 def _save_cache(key: str, data: dict) -> None:
-    """Supabase 우선 저장 후 파일 캐시도 함께 기록(이중 안전장치)."""
+    """경로 이유 DB에 저장하고 Supabase/파일 캐시에도 기록한다."""
+    reason_store.put(key, data, source="gemini")
+
     sb = _get_supabase()
     if sb is not None:
         try:
@@ -195,12 +210,15 @@ def _call_gemini_sync(client, prompt: str) -> str | None:
 
 
 async def _enrich_single(client, course: dict, mobility_types: list[str], days: int) -> dict:
-    """단일 코스를 Gemini로 보강한다. 캐시 우선."""
+    """단일 코스를 저장 이유 또는 Gemini로 보강한다."""
     key = _cache_key(course, mobility_types)
     cached = _load_cache(key)
     if cached:
-        logger.info(f"AI 캐시 히트: {course['name'][:20]}")
+        logger.info("추천 이유 캐시 히트: %s", course["name"][:20])
         return _apply_ai(course, cached)
+
+    if client is None:
+        return course
 
     try:
         global _gemini_last_call
@@ -252,11 +270,10 @@ async def enrich_courses(
     mobility_types: list[str],
     days: int,
 ) -> list[dict]:
-    """Gemini로 각 코스에 AI 설명 + 스팟별 가이드를 추가한다. 코스별 개별 호출."""
-    client = _get_client()
-    if not client or not courses:
+    """저장된 추천 이유를 우선 적용하고, 없는 경로만 Gemini로 보강한다."""
+    if not courses:
         return courses
 
-    # primary 코스만 AI 보강 (각 day의 첫 번째), 나머지는 동일 호출 방지
+    client = _get_client()
     tasks = [_enrich_single(client, c, mobility_types, days) for c in courses]
     return list(await asyncio.gather(*tasks))

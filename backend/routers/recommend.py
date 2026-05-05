@@ -1,4 +1,4 @@
-"""POST /api/recommend — 알고리즘 + Gemini AI 코스 추천."""
+"""POST /api/recommend — 알고리즘 + 저장/Gemini 추천 이유 보강."""
 from __future__ import annotations
 
 import asyncio
@@ -78,7 +78,7 @@ async def recommend(req: RecommendRequest):
             else "조건에 맞는 코스를 찾지 못했어요."
         )
 
-    # Gemini AI 설명 보강 (키 없으면 그냥 통과)
+    # 저장된 경로별 추천 이유 우선 적용, 없으면 Gemini 시도, 실패하면 원본 통과
     courses = await enrich_courses(courses, req.mobility_types, req.days)
 
     cache_courses(courses)

@@ -117,9 +117,16 @@ class CourseStore:
         try:
             conn = self._conn()
             try:
+                now_iso = datetime.now(timezone.utc).isoformat()
+                # 만료된 ID 목록 조회 후 삭제
+                expired_ids = [
+                    row[0]
+                    for row in conn.execute(
+                        "SELECT id FROM courses WHERE expires_at < ?", (now_iso,)
+                    ).fetchall()
+                ]
                 cur = conn.execute(
-                    "DELETE FROM courses WHERE expires_at < ?",
-                    (datetime.now(timezone.utc).isoformat(),),
+                    "DELETE FROM courses WHERE expires_at < ?", (now_iso,)
                 )
                 conn.commit()
                 deleted = cur.rowcount
@@ -128,6 +135,9 @@ class CourseStore:
         except Exception as e:
             logger.warning("만료 코스 정리 실패: %s", e)
             return 0
+        # 인메모리 dict에서도 만료 항목 제거
+        for cid in expired_ids:
+            self._data.pop(cid, None)
         if deleted:
             logger.info("만료 코스 %d건 삭제", deleted)
         return deleted

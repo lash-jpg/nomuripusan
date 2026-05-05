@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException  # HTTPException: interaction 400에 사용
 from pydantic import BaseModel, Field
 
 from backend.services.supabase_client import get_client
@@ -68,7 +68,7 @@ async def log_recommendation(req: RecommendLogRequest):
         return RecommendLogResponse(ok=True, log_id=log_id)
     except Exception as e:
         logger.warning("추천 로그 저장 실패: %s", e)
-        raise HTTPException(status_code=500, detail="추천 로그 저장에 실패했어요. 잠시 후 다시 시도해주세요.")
+        return RecommendLogResponse(ok=False, log_id=None)
 
 
 @router.post("/api/log/survey", response_model=SurveyResponse)
@@ -92,7 +92,7 @@ async def log_survey(req: SurveyRequest):
         return SurveyResponse(ok=True, survey_id=survey_id)
     except Exception as e:
         logger.warning("만족도 저장 실패: %s", e)
-        raise HTTPException(status_code=500, detail="설문 저장에 실패했어요. 잠시 후 다시 시도해주세요.")
+        return SurveyResponse(ok=False, survey_id=None)
 
 
 # ── 사용자 인터랙션 로그 ────────────────────────────────────────────────

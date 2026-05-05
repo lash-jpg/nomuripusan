@@ -28,6 +28,8 @@ Thumbs.db
 # Data files (generated at runtime)
 backend/data/share.db
 backend/data/reports.db
+backend/data/courses.db
+backend/data/recommendation_reasons.db
 backend/data/ai_cache/
 backend/data/accessibility_cache.json
 

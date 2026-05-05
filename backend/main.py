@@ -25,7 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from backend.routers import analytics, courses, meta, recommend, report, search, share, spot_detail, weather
 
 
-_REQUIRED_ENV_VARS = ["TOUR_API_KEY", "GEMINI_API_KEY"]
+_REQUIRED_ENV_VARS = ["TOUR_API_KEY"]
 
 
 @asynccontextmanager
@@ -153,7 +153,9 @@ async def rate_limit_middleware(request: Request, call_next):
     limit_config = _RATE_LIMITS.get(path)
     if limit_config and request.method == "POST":
         max_requests, window_sec = limit_config
-        client_ip = request.client.host if request.client else "unknown"
+        # X-Forwarded-For 헤더로 실제 클라이언트 IP 추출 (CDN/프록시 환경 대응)
+        forwarded = request.headers.get("X-Forwarded-For")
+        client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
         bucket_key = f"{client_ip}:{path}"
         now = time.time()
 

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'c';  // 같은 날 재배포 시 알파벳 한 글자 올리면 강제 갱신
+const CACHE_VERSION = 'd';  // 같은 날 재배포 시 알파벳 한 글자 올리면 강제 갱신
 const CACHE_NAME = 'muriopbs-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + CACHE_VERSION;
 const STATIC = ['/', '/onboarding.html', '/results.html', '/course.html', '/share.html', '/offline.html', '/css/style.css', '/js/app.js', '/js/onboarding.js', '/js/results.js', '/js/course.js', '/js/share.js', '/manifest.json'];
 
@@ -19,6 +19,10 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+
+  if (url.origin !== self.location.origin) {
+    return;
+  }
 
   if (url.pathname === '/runtime-config.js') {
     // Network First, cache successful responses with timestamp; expire after 1 hour

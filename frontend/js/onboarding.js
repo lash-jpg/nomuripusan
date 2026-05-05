@@ -275,16 +275,6 @@
         bounds.extend(new kakao.maps.LatLng(c.lat, c.lng));
       });
       map.setBounds(bounds, 30, 30, 30, 30);
-
-      // 도메인 등록이 안 돼 있어 타일이 로드되지 않으면 2초 후 폴백으로 전환
-      let _tilesLoaded = false;
-      kakao.maps.event.addListener(map, 'tilesloaded', function () { _tilesLoaded = true; });
-      setTimeout(function () {
-        if (!_tilesLoaded) {
-          console.warn('Kakao 지도 타일 로드 실패 (도메인 등록 확인 필요) — 폴백 UI 전환');
-          renderMapFallback(fallback, container);
-        }
-      }, 2500);
     } catch (err) {
       console.warn('Kakao SDK 로드 실패, 폴백 UI 사용:', err && err.message);
       renderMapFallback(fallback, container);

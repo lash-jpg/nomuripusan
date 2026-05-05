@@ -138,20 +138,6 @@ loadWeather();
     if (mySeq === _resultRenderSeq) {
       map.setBounds(bounds, 40, 40, 40, 40);
     }
-
-    // 타일 로드 실패(도메인 미등록 등) 시 SVG mock 으로 폴백 (첫 렌더만 감지)
-    if (!map.__tilesCheckAttached) {
-      map.__tilesCheckAttached = true;
-      let _tilesLoaded = false;
-      kakao.maps.event.addListener(map, 'tilesloaded', function () { _tilesLoaded = true; });
-      setTimeout(function () {
-        if (!_tilesLoaded) {
-          console.warn('Result map: Kakao 타일 로드 실패 — SVG mock 으로 폴백');
-          _resultMap = null;  // 폴백 시 다음에 재생성되도록 리셋
-          renderResultMockMap(spots);
-        }
-      }, 2500);
-    }
   }
 
   function renderResultMockMap(spots) {

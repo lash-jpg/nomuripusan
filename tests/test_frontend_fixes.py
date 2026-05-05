@@ -8,6 +8,9 @@ from pathlib import Path
 
 COURSE_JS = Path("frontend/js/course.js").read_text(encoding="utf-8")
 COURSE_HTML = Path("frontend/course.html").read_text(encoding="utf-8")
+ONBOARDING_JS = Path("frontend/js/onboarding.js").read_text(encoding="utf-8")
+RESULTS_JS = Path("frontend/js/results.js").read_text(encoding="utf-8")
+SERVICE_WORKER_JS = Path("frontend/sw.js").read_text(encoding="utf-8")
 
 
 class FrontendBugFixTests(unittest.TestCase):
@@ -84,6 +87,25 @@ class FrontendBugFixTests(unittest.TestCase):
                          "B-006: tilesloaded 이벤트 기반 mock 폴백은 정상 지도를 오탐으로 덮어쓸 수 있음")
         self.assertNotIn("Course map: Kakao 타일 로드 실패", COURSE_JS,
                          "B-006: 타일 로드 타임아웃 기반 mock 폴백 로그가 남아 있음")
+
+    # B-007: 다른 지도 화면도 타일 이벤트 오탐 폴백을 사용하지 않음
+    def test_b007_no_tile_event_fallback_in_other_map_screens(self):
+        """온보딩/결과 지도도 tilesloaded 타임아웃만으로 폴백하지 않아야 한다."""
+        self.assertNotIn("tilesloaded", ONBOARDING_JS,
+                         "B-007: 온보딩 지도에 tilesloaded 기반 폴백이 남아 있음")
+        self.assertNotIn("tilesloaded", RESULTS_JS,
+                         "B-007: 결과 지도에 tilesloaded 기반 폴백이 남아 있음")
+
+    # B-008: 배포 후 이전 course.js 캐시 재사용 방지
+    def test_b008_course_script_is_cache_busted_and_sw_version_bumped(self):
+        """course.html은 버전 쿼리로 course.js를 로드하고 서비스워커 캐시 버전은 갱신되어야 한다."""
+        self.assertRegex(
+            COURSE_HTML,
+            r'<script[^>]+src="/js/course\.js\?v=[^"]+"[^>]*defer',
+            "B-008: course.js 스크립트에 캐시 무효화 버전 쿼리가 필요함"
+        )
+        self.assertNotIn("CACHE_VERSION = 'd'", SERVICE_WORKER_JS,
+                         "B-008: 이전 서비스워커 캐시 버전 d가 남아 있어 오래된 JS 캐시를 재사용할 수 있음")
 
     # B-010: searchPlacesFallback 함수 정의 + try-catch 보호
     def test_b010_searchplacesfallback_defined_and_safe(self):

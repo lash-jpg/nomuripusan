@@ -186,6 +186,25 @@ button { font-family: inherit; }
   box-shadow: none; cursor: not-allowed; transform: none;
 }
 .btn-primary:disabled::after { display: none; }
+.btn-primary.loading,
+.btn-primary.loading:disabled {
+  background: var(--primary-mid);
+  box-shadow: 0 2px 8px rgba(0, 48, 135, 0.2);
+  cursor: wait;
+  transform: none;
+}
+.btn-spinner {
+  display: inline-block;
+  width: 15px; height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: btnSpin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+  margin-bottom: 2px;
+}
+@keyframes btnSpin { to { transform: rotate(360deg); } }
 
 .btn-outline {
   width: 100%; height: 48px;
@@ -718,30 +737,33 @@ button { font-family: inherit; }
   box-shadow: 0 4px 12px rgba(0, 48, 135, 0.45);
 }
 .busan-map-fallback {
-  padding: 16px;
+  padding: 0;
 }
-.step3-fallback-notice {
-  font-size: 13px;
-  color: var(--gray-600, #4b5563);
-  margin-bottom: 10px;
-}
-.step3-fallback-grid {
+.step3-fallback-header {
+  background: linear-gradient(135deg, #003087 0%, #1a4fa0 60%, #1260a0 100%);
+  padding: 18px 20px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
 }
-.step3-fallback-chip {
-  padding: 8px 14px;
-  border: 1.5px solid var(--gray-200, #e5e7eb);
-  border-radius: 18px;
-  background: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
+.step3-fallback-icon {
+  font-size: 22px;
+  flex-shrink: 0;
 }
-.step3-fallback-chip:hover {
-  border-color: var(--primary, #003087);
-  color: var(--primary, #003087);
+.step3-fallback-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.step3-fallback-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.step3-fallback-hint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.68);
 }
 
 .area-chip {
@@ -766,6 +788,9 @@ button { font-family: inherit; }
   color: var(--white);
   border-color: var(--primary);
   box-shadow: var(--shadow-btn);
+}
+.area-chip.selected::before {
+  content: '✓ ';
 }
 .ob-bottom { padding: 0 20px 36px; }
 
@@ -1894,7 +1919,6 @@ button { font-family: inherit; }
   /* 히어로 통계 바 PC */
   .hero-stats-bar {
     display: flex;
-    grid-template-columns: none;
     max-width: 640px;
     margin-top: 28px;
     padding: 14px 24px;
@@ -2038,7 +2062,29 @@ button { font-family: inherit; }
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
   }
   .result-list .loading-overlay { grid-column: 1 / -1; }
+  .result-list .overview-tab   { grid-column: 1 / -1; }
+  .result-list .empty-state    { grid-column: 1 / -1; }
+  .result-list .overview-highlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .overview-stat-num { font-size: 32px; }
+  .overview-stats { gap: 20px; }
   .course-card { height: 100%; }
+
+  /* result map PC */
+  .result-map-wrap {
+    max-width: 1200px; margin: 0 auto 20px;
+    padding: 0 48px;
+    background: transparent; border: none; box-shadow: none;
+  }
+  .result-map {
+    height: 280px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
 
   /* 만족도 섹션 PC 레이아웃 — 중앙 정렬, 카드 카드 아래 자연스럽게 */
   .satisfaction-section {

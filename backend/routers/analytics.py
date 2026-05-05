@@ -105,6 +105,7 @@ ALLOWED_EVENT_TYPES = {
     "refresh_click",      # "다시 분석" 클릭
     "edit_conditions",    # "조건 수정" 클릭
     "share_click",        # 공유 버튼 클릭
+    "onboarding_step",    # 온보딩 단계 전환
     "onboarding_complete", # 온보딩 완료 (추천 요청 직전)
     "survey_skip",        # 만족도 조사 건너뜀
 }

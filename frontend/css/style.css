@@ -1966,6 +1966,8 @@ button { font-family: inherit; }
     align-items: start;
   }
   .ob-pc-left { position: sticky; top: 88px; }
+  .ob-pc-left--col { display: flex; flex-direction: column; }
+  .ob-pc-left-cta { margin-top: 32px; }
   .ob-pc-left .ob-step-label { font-size: 13px; margin-bottom: 8px; }
   .ob-pc-left .ob-title { font-size: 28px; margin-top: 0; }
   .ob-pc-left .ob-subtitle { font-size: 15px; }

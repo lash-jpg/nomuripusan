@@ -234,10 +234,13 @@
 
     <!-- PC -->
     <div class="ob-pc-layout ob-pc-only">
-      <div class="ob-pc-left">
+      <div class="ob-pc-left ob-pc-left--col">
         <div class="ob-step-label">Step 3 / 3</div>
         <h2 class="ob-title" id="step3TitlePc">어디를 방문하고 싶으신가요?</h2>
         <p class="ob-subtitle">관심 지역을 선택하면 해당 권역 중심으로 추천합니다. 미선택 시 전체 지역 추천.</p>
+        <div class="ob-pc-left-cta">
+          <button class="btn-primary" id="step3NextPc">코스 추천받기 →</button>
+        </div>
       </div>
       <div class="ob-pc-right">
         <!-- 부산 실제 지도 (Kakao Map SDK, PC) -->
@@ -255,9 +258,6 @@
           <button class="area-chip" data-area="사하" role="checkbox" aria-checked="false">사하</button>
           <button class="area-chip" data-area="남구" role="checkbox" aria-checked="false">남구</button>
           <button class="area-chip" data-area="북항" role="checkbox" aria-checked="false">북항</button>
-        </div>
-        <div class="ob-bottom">
-          <button class="btn-primary" id="step3NextPc">코스 추천받기 →</button>
         </div>
       </div>
     </div>
